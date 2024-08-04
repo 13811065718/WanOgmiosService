@@ -1,0 +1,22 @@
+{
+  "serviceType": "AgentServiceInterface",
+  "serviceName": "AgentService",
+  "config": {
+    "SecurityConfirmCfg":{
+      "securityConfirmServiceID": 100110,
+      "retryInterval": 100,
+      "confirmStep": 5,
+      "securityBlockNum": 30,
+      "delayBlockNum": 3,
+      "maxValidBlockMargin": 10,
+      "externalSource": "blockFrost",
+      "blockFrostConfig": {
+        "ApiKey": "mainnetwyQcQkHH6HTr7eylR6hWwA2Rt5R9AVEY"
+      },
+      "maestroConfig":{
+        "ApiKey": "v0LXAjiRQAm3PNjlFSlqB8rfgUp7OExE",
+        "url": "https://ogmios.wanchain.gomaestro-api.org/"
+      }
+    }
+  }
+}
