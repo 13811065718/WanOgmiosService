@@ -41,13 +41,20 @@ class OriginOgmios {
             apiKey: "v0LXAjiRQAm3PNjlFSlqB8rfgUp7OExE"
         };
 
+
+
+        this.ogmiosAccessStatic = {
+            "totalNum": 0,
+            "successNum": 0,
+            "failedNum": 0,
+            "curTs": Date.now()/1000
+        };
+
     }
 
     async init() {
         await this.connectOgmiosNode();
 
-        this.succeedTimes = 0;
-        this.failedTimes = 0;
     }
 
     async reconnectOgmiosNode(){
@@ -86,9 +93,31 @@ class OriginOgmios {
         console.log("current chain Tip is: ", chainTip);
         // (await this.queryClient.chainTip()).slot;
         // chainTip ---> networkTip
+        this.addSuccessOgmiosAccess();
+
 
         // tx submit client
         this.txSubmitClient = await createTransactionSubmissionClient(this.context);
+    }
+
+    addSuccessOgmiosAccess() {
+        this.ogmiosAccessStatic.successNum++;
+        this.ogmiosAccessStatic.totalNum++;
+        let curTs = Date.now() / 1000;
+        if ((curTs - this.ogmiosAccessStatic.curTs) >= 300) {
+            this.ogmiosAccessStatic.curTs = curTs;
+            console.log("...ogmiosAccessStatic:", this.ogmiosAccessStatic);
+        }
+    }
+
+    addFailedOgmiosAccess() {
+        this.ogmiosAccessStatic.failedNum++;
+        this.ogmiosAccessStatic.totalNum++;
+        let curTs = Date.now() / 1000;
+        if ((curTs - this.ogmiosAccessStatic.curTs) >= 300) {
+            this.ogmiosAccessStatic.curTs = curTs;
+            console.log("...ogmiosAccessStatic:", this.ogmiosAccessStatic);
+        }
     }
 
     byteArray2Hexstring(byteArray) {
@@ -116,56 +145,54 @@ class OriginOgmios {
                     let targetAddr = "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd";
                     ret = await this.getUtxosByAddress(targetAddr);
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        this.addSuccessOgmiosAccess();
                     }
                     return;
             case 2: ret = await this.getGenesisConfiguration();
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        this.addSuccessOgmiosAccess();
                     }
                     return;
             case 3: ret = await this.getEraSummariesInfo();
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        
+                       this.addSuccessOgmiosAccess();
                     }
                     return;
             case 4: ret = await this.getCurProtocolParams();
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        
+                       this.addSuccessOgmiosAccess();
                     }
                     return;
             case 5: ret = await this.getChainTip();
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        
+                       this.addSuccessOgmiosAccess();
                     }
                     return;
             case 0: ret = await this.getChainBlockHeight();
                     if(undefined === ret){
-                        this.failedTimes++;
-                        console.log("\n...triggerQueryCmd failed: ", this.failedTimes, this.succeedTimes);
+                        this.addFailedOgmiosAccess();
                         await this.sleep(5000);
                     }else{
-                        this.succeedTimes++;
+                        
+                       this.addSuccessOgmiosAccess();
                     }
                     return;
             default: 
@@ -198,7 +225,7 @@ class OriginOgmios {
         do{        
             let cmdId = this.randomNum(0, 5);      
             await this.triggerQueryCmd(cmdId);    
-            console.log("...get random cmd id: ", cmdId, this.failedTimes, this.succeedTimes);  
+            // console.log("...get random cmd id: ", cmdId);  
     
             await this.sleep(1000);
     

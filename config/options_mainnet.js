@@ -88,8 +88,8 @@ module.exports = {
             syncedBlockNo: { type: Number } 
         }
     },
-    checkTokenPolicyIdSchema:{
-        name: "checkTokenPolicyIdConfig",
+    mappingTokenPolicyIdSchema:{
+        name: "mappingTokenPolicyIdConfig",
         schema: {
             checkTokenType: {type: Number, index: true}, // 1: non-NFT; 2: NFT
             policyIds: { type: Array },
@@ -119,8 +119,12 @@ module.exports = {
     nftTreasuryScCfg: "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd", 
     treasuryScCfg: "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
     checkTokenPolicyIdCfg: [
-        "526d246045bf4a66ae86fd7a9985a91ef3752113f9daa9060bb54be6",
-        "992eefaec3fed37e3cdd4e9063721f0f2e231d61934a9f538b492f5c"
+        "9432bc2dccab7a0b07881752e55e050991ccf31725794816ff6f7fec",
+        "9270c8a0f52d7f503a865ab30bde7cf2847d3df79938e498a27536c0"
+    ],
+    nftCheckTokenPolicyIdCfg: [
+        "6c7fcc7a8f6ba6a4655f133afd40c03517c94fee1c8f124021772b19",
+        "e4d8eb6b46655cb39b3c467bfa9323ee0e9ee9e36b9a0ecdb6f13dc4"
     ],
     iWanConfig:  {
         "apiKey": "7190c9ade976841596c3451487fcdd53d81e9406c450653d8b9339831429ac01",  //

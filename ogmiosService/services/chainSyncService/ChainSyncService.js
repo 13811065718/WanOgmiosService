@@ -66,10 +66,6 @@ class ChainSyncService extends ChainSyncServiceInterface {
     this.balancedCfgInfoDbInst = await this.storageService.initDB(balancedCfgInfoSchema);
     mapDbNameInst.set(balancedCfgInfoSchema.name, this.balancedCfgInfoDbInst);
 
-    let policyIdSchema = await this.configService.getGlobalConfig("checkTokenPolicyIdSchema");
-    this.policyIdConfigDbInst = await this.storageService.getDBIns(policyIdSchema.name);
-    mapDbNameInst.set(policyIdSchema.name, this.policyIdConfigDbInst);
-
     this.securityConfirmEnable = await this.configService.getGlobalConfig("securityConfirmEnable");
     console.log("\n\n...ChainSyncService init...securityConfirmEnable : ", this.securityConfirmEnable);
 
@@ -78,6 +74,7 @@ class ChainSyncService extends ChainSyncServiceInterface {
     let treasuryScCfg = await this.configService.getGlobalConfig("treasuryScCfg");
     let nftTreasuryScCfg = await this.configService.getGlobalConfig("nftTreasuryScCfg");
     let checkTokenPolicyIdCfg = await this.configService.getGlobalConfig("checkTokenPolicyIdCfg");
+    let nftCheckTokenPolicyIdCfg = await this.configService.getGlobalConfig("nftCheckTokenPolicyIdCfg");
     console.log("\n\n...ChainSyncService init...step 2-1 : ");
 
     // to instance a utxo manager for treasury contract
@@ -88,7 +85,7 @@ class ChainSyncService extends ChainSyncServiceInterface {
     }
     this.mapUtxoManager.set("NonNFT", this.treasuryUtxoMgrObj);
     //  instance a utxo mananger for nftTreasury contract
-    this.nftTreasuryUtxoMgrObj = new TreasuryUtxoManager(nftTreasuryScCfg, mapDbNameInst, this.ogmiosServerConfig);
+    this.nftTreasuryUtxoMgrObj = new TreasuryUtxoManager(nftTreasuryScCfg, mapDbNameInst, this.ogmiosServerConfig, nftCheckTokenPolicyIdCfg);
     initRet = await this.nftTreasuryUtxoMgrObj.init();
     if (!initRet) {
       throw "nftTreasuryUtxoManager init failed!"
@@ -180,7 +177,6 @@ class ChainSyncService extends ChainSyncServiceInterface {
       }
       // console.log("\n\n...ChainSyncService startUp: ", initialSyncTip);
       this.points = new Array();
-
 
       let filter = {
         "blockHeight": { '$gt': this.chainSyncedInfo.syncedBlockNumber - 30, "$lt": this.chainSyncedInfo.syncedBlockNumber }

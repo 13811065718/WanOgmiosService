@@ -1,6 +1,7 @@
 
 const BaseTask = require('../taskservice/BaseTask.js');
 const ServiceFramework = require("../../framework/ServiceFramework");
+const { sleep } = require("../utilService/commonUtils");
 
 
 class IWanTask extends BaseTask {
@@ -13,7 +14,7 @@ class IWanTask extends BaseTask {
     this.retryInterval = iWanServiceConfig.retryInterval;
     this.iWanClientInst = iWanClientInst;
     this.bMainnet = this.bMainnet;
-    this.policyIdDbInst = mapDbInstance.get("checkTokenPolicyIdConfig");
+    this.policyIdDbInst = mapDbInstance.get("mappingTokenPolicyIdConfig");
 
     this.cardanoChainID = cardanoChainID;
 
@@ -48,57 +49,56 @@ class IWanTask extends BaseTask {
   static askTask() {
   }
 
-	async getCardanoNftPolicyIdInfo(){
-		
-		let validNftPolicyIds = new Array();
+  async getCardanoNftPolicyIdInfo() {
+
+    let validNftPolicyIds = new Array();
     let mapNftPolicyId = new Map();
+    let options = this.bMainnet ? { tags: ["bridge", "bridgeBeta"] } : { isAllTokenPairs: true }
+    console.log("options: ", options);
 
-		let options = this.bMainnet ? {tags: ["bridge", "bridgeBeta"]} : {isAllTokenPairs: true}
-		console.log("options: ", options);
+    let tokenPairsInfo = await this.iWanClientInst.getTokenPairs(options);
+    // console.log("getCardanoNftPolicyIdInfo ret: ", tokenPairInfo);	
+    for (let i = 0; i < tokenPairsInfo.length; i++) {
+      let tokenPair = tokenPairsInfo[i];
 
-		let tokenPairsInfo = await this.iWanClientInst.getTokenPairs(options);
-		// console.log("getCardanoNftPolicyIdInfo ret: ", tokenPairInfo);	
-		for(let i=0; i<tokenPairsInfo.length; i++){
-			let tokenPair = tokenPairsInfo[i];
-
-			if(this.cardanoChainID === tokenPair.fromChainID){
+      if (this.cardanoChainID === tokenPair.fromChainID) {
         // need to check the real account type in cardano nft tokenpairs
-				if((tokenPair.fromAccountType === 'Erc721')
-					|| (tokenPair.fromAccountType === 'Erc1155')){
-					// cardanoRelatedTokenPairs.push(tokenPair);
+        if ((tokenPair.fromAccountType === 'Erc721')
+          || (tokenPair.fromAccountType === 'Erc1155')) {
+          // cardanoRelatedTokenPairs.push(tokenPair);
 
-					let nftScAddress = tokenPair.fromAccount;
-					let strAssetUnit = Buffer.from(nftScAddress.replace("0x",""),"hex").toString();
-					console.log("cardano related TokenPair fromChain: ", i, tokenPair, strAssetUnit);
+          let nftScAddress = tokenPair.fromAccount;
+          let strAssetUnit = Buffer.from(nftScAddress.replace("0x", ""), "hex").toString();
+          console.log("cardano related TokenPair fromChain: ", i, tokenPair, strAssetUnit);
 
           let [strPolicyId, strName] = strAssetUnit.split(".");
           mapNftPolicyId.set(strPolicyId, true);
-				}
+        }
 
-			}else if (this.cardanoChainID === tokenPair.toChainID) {
+      } else if (this.cardanoChainID === tokenPair.toChainID) {
         // need to check the real account type in cardano nft tokenpairs
-				if((tokenPair.toAccountType === 'Erc721')
-					||(tokenPair.toAccountType === 'Erc1155')){
-					// cardanoRelatedTokenPairs.push(tokenPair);
+        if ((tokenPair.toAccountType === 'Erc721')
+          || (tokenPair.toAccountType === 'Erc1155')) {
+          // cardanoRelatedTokenPairs.push(tokenPair);
 
-					let nftScAddress = tokenPair.toAccount;
-					let strAssetUnit = Buffer.from(nftScAddress.replace("0x",""),"hex").toString();
-					console.log("cardano related TokenPair toChain: ", i, tokenPair, strAssetUnit);
+          let nftScAddress = tokenPair.toAccount;
+          let strAssetUnit = Buffer.from(nftScAddress.replace("0x", ""), "hex").toString();
+          console.log("cardano related TokenPair toChain: ", i, tokenPair, strAssetUnit);
 
           let [strPolicyId, strName] = strAssetUnit.split(".");
           mapNftPolicyId.set(strPolicyId, true);
-				}
-			}
-		}
+        }
+      }
+    }
 
-    for(let policyId of mapNftPolicyId.keys()){
+    for (let policyId of mapNftPolicyId.keys()) {
       validNftPolicyIds.push(policyId);
     }
 
-		return validNftPolicyIds;
-	}
+    return validNftPolicyIds;
+  }
 
-  async getNftTreasuryPolicyIds(){
+  async getNftTreasuryPolicyIds() {
     try {
       let validNftPolicyIds = await this.getCardanoNftPolicyIdInfo();
 
@@ -106,13 +106,13 @@ class IWanTask extends BaseTask {
 
     } catch (err) {
       console.log(err);
-      throw("getNftTreasuryPolicyIds exception: ", err);
+      throw ("getNftTreasuryPolicyIds exception: ", err);
     }
   }
 
   // Part 2: security confirm handle
   async retrieveValidNftPolicyIds() {
-    console.log('\n\nretrieveValidNftPolicyIds begin:');
+    console.log('\n\n IWanTask retrieveValidNftPolicyIds begin:');
     // this.chainId2TypeInfo
     let nftPolicyIds = undefined;
     try {
@@ -143,6 +143,7 @@ class IWanTask extends BaseTask {
       }
     }
 
+    console.log('\n\n IWanTask retrieveValidNftPolicyIds end:');
     return true;
   }
 
@@ -160,9 +161,11 @@ class IWanTask extends BaseTask {
       return;
     }
 
+    await sleep(1800000);
+
     // to set re-loop config
     this.taskSchedule.setFinishSuccess(this);
-    this.addTaskBySelf(1800000); // 30*60*1000
+    this.addTaskBySelf(1000); // 30*60*1000
     this.logUtilSrv.logDebug("IWanTask", "...run end...", this.chainID);
     return;
   }

@@ -88,8 +88,8 @@ module.exports = {
             syncedBlockNo: { type: Number } 
         }
     },
-    checkTokenPolicyIdSchema:{
-        name: "checkTokenPolicyIdConfig",
+    mappingTokenPolicyIdSchema:{
+        name: "mappingTokenPolicyIdConfig",
         schema: {
             checkTokenType: {type: Number, index: true}, // 1: non-NFT; 2: NFT
             policyIds: { type: Array },
@@ -106,10 +106,10 @@ module.exports = {
         }
     },
     chainSyncCfg:{
-        "initialBlockNumber": 2450785,
-        "initialBlockTime": "2024-07-09T09:12:00Z",
-        "initialSlot": 64833148,
-        "initialHash": "10b1736e5d0d74de61c9757ffd4de26c7d0943e22a3ceb1c581933ace7f58aff"
+        "initialBlockNumber": 2607314,
+        "initialBlockTime": "2024-08-20T07:29:00Z",
+        "initialSlot": 68455756,
+        "initialHash": "d1887a3afb3db647d794bea4a452aceee258ae02802635be38b4444c2e81d248"
     },
     ogmiosServerCfg:{
         host: "52.13.9.234", 
@@ -118,8 +118,12 @@ module.exports = {
     nftTreasuryScCfg: "addr_test1qzjd7yhl8d8aezz0spg4zghgtn7rx7zun7fkekrtk2zvw9vsxg93khf9crelj4wp6kkmyvarlrdvtq49akzc8g58w9cqhx3qeu", 
     treasuryScCfg: "addr_test1xqweycval58x8ryku838tjqypgjzfs3t4qjj0pwju6prgmjwsw5k2ttkze7e9zd3jr00x5nkhmpx97cv6xx25jsgxh2swlkfgp",
     checkTokenPolicyIdCfg: [
-        "4295914ef5ff86204642d3334ee444f9dafc694b4da246b39b68fbb0",
-        "2707ef39e2521117d2d3851ef80ad17737eb8294a58397948aa28568"
+        "9432bc2dccab7a0b07881752e55e050991ccf31725794816ff6f7fec",
+        "9270c8a0f52d7f503a865ab30bde7cf2847d3df79938e498a27536c0"
+    ],
+    nftCheckTokenPolicyIdCfg: [
+        "6c7fcc7a8f6ba6a4655f133afd40c03517c94fee1c8f124021772b19",
+        "e4d8eb6b46655cb39b3c467bfa9323ee0e9ee9e36b9a0ecdb6f13dc4"
     ],
     iWanConfig:  {
         "apiKey": "c8b4e563aa355356b7f80df02984da7b61d27d645668e843187d030183274381", // "7190c9ade976841596c3451487fcdd53d81e9406c450653d8b9339831429ac01",  //
@@ -133,5 +137,5 @@ module.exports = {
         "dataValidLatestTs": 1800000,
         "iWanServiceID": 60150
     },
-    securityConfirmEnable: true
+    securityConfirmEnable: false
 }

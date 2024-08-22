@@ -27,7 +27,6 @@ class SecurityConfirmTask extends BaseTask {
     this.blockInfoDbInst = mapDbInstance.get("blockRecord");
     this.mintInfoDbInst = mapDbInstance.get("mintRecord");
     this.confirmDbInst = mapDbInstance.get("confirmedRecord");
-    this.checkTokenPolicyIdDbInst = mapDbInstance.get("checkTokenPolicyIdConfig");
 
     this.preSyncedBlockNo = preSyncedBlockNo;
     this.curSyncedBlockNo = undefined;
@@ -72,40 +71,6 @@ class SecurityConfirmTask extends BaseTask {
 
 
   // Part 2: security confirm handle
-  async updateCheckTokenCfg() {
-    // retrieve checkTokenId from policyId db table
-    try {
-      let curTokenFilterOption = new Array();
-
-      for (let typeId = 1; typeId <= 2; typeId++) {
-        let filter = {
-          "checkTokenType": typeId // 1: Non-NFT; 2: NFT
-        };
-        let ret = await this.checkTokenPolicyIdDbInst.findByOption(filter);
-        if (undefined === ret) {
-          return false;
-        }
-
-        let checkTokenPolicyIds = ret[0];
-        for (let i = 0; i < checkTokenPolicyIds.length; i++) {
-          let tmpRegex = eval("/^" + checkTokenPolicyIds[i] + './');
-          let tokenRegexItem = {
-            "tokenId": { $regex: tmpRegex }
-          }
-          curTokenFilterOption.push(tokenRegexItem);
-        }
-      }
-
-      this.tokenFilterOption = curTokenFilterOption;
-
-    } catch (e) {
-      console.log("updateCheckTokenCfg fail, try later");
-      return false;
-    }
-
-    return true;
-  }
-
   async checkCurSyncedBlock() {
     try {
       let filter = {
@@ -218,15 +183,6 @@ class SecurityConfirmTask extends BaseTask {
     this.logUtilSrv.logDebug("SecurityConfirmTask", "...run begin...", this.chainID);
 
     // step 1: to check the target block of this round to confirm security
-    let ret = await this.updateCheckTokenCfg();
-    if(false === ret){
-      console.log("\n\n......[SecurityConfirmTask] updateCheckTokenCfg is failed, try again later!");
-      this.logUtilSrv.logError("SecurityConfirmTask", "...updateCheckTokenCfg is failed, try again later!...");
-      this.taskSchedule.setFinishSuccess(this);
-      this.addTaskBySelf(this.retryInterval);
-      return;
-    }
-
     let checkRet = await this.checkConfirmBlockEnd();
     if (false === checkRet) {
       console.log("\n\n......[SecurityConfirmTask] checkConfirmBlockEnd is failed, try again later!");

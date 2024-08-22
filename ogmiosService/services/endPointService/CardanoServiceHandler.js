@@ -42,8 +42,8 @@ class CardanoServiceHandler {
         let balancedCfgInfoSchema = await this.configService.getGlobalConfig("balancedCfgInfoSchema");
         this.balancedCfgInfoDbInst = await this.storageSrvIns.getDBIns(balancedCfgInfoSchema.name);
 
-        let checkTokenPolicyIdSchema = await this.configService.getGlobalConfig("checkTokenPolicyIdSchema");
-        this.policyIdDbInst = await this.storageSrvIns.getDBIns(checkTokenPolicyIdSchema.name);
+        let mappingTokenPolicyIdSchema = await this.configService.getGlobalConfig("mappingTokenPolicyIdSchema");
+        this.policyIdDbInst = await this.storageSrvIns.getDBIns(mappingTokenPolicyIdSchema.name);
 
 
         this.treasuryScCfg = await this.configService.getGlobalConfig("treasuryScCfg");

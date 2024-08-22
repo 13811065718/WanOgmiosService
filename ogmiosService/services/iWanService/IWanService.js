@@ -24,7 +24,7 @@ class IWanService extends AgentServiceInterface {
     this.configService = ServiceFramework.getService("ConfigServiceInterface", "ConfigServiceJson");
     this.storageSrvIns = ServiceFramework.getService("StorageServiceInterface", "StorageService");
 
-    let policyIdSchema = await this.configService.getGlobalConfig("checkTokenPolicyIdSchema"); // checkTokenPolicyIdConfig
+    let policyIdSchema = await this.configService.getGlobalConfig("mappingTokenPolicyIdSchema");  
     this.policyIdDbInst = await this.storageSrvIns.initDB(policyIdSchema);
     this.mapDbInstance.set(policyIdSchema.name, this.policyIdDbInst);
 
@@ -35,30 +35,14 @@ class IWanService extends AgentServiceInterface {
     
     this.bMainnet = ("api.wanchain.org" === this.iWanConfig.option.url) ? true : false;
 
-    let nonNftCheckTokenPolicyIdCfg = await this.configService.getGlobalConfig("checkTokenPolicyIdCfg");
-
     let policyIdRecord = await this.policyIdDbInst.findAllByOption();
     if (0 == policyIdRecord.length) {
-      let policyIdInfo = {
-        "checkTokenType": 1,
-        "policyIds": nonNftCheckTokenPolicyIdCfg
-      }
-
-      try {
-        await this.policyIdDbInst.insert(policyIdInfo);
-
-      } catch (error) {
-        console.log("\n\n insert initial policyIdInfo failed: ", error);
-        throw "insert initial policyIdInfo failed!"
-      }
-
       let ret = await this.configNftPolicyIds();
       if (false === ret) {
         console.log("\n\n insert initial nft policyIdInfo failed! ");
         throw "insert initial nft policyIdInfo failed!"
       }
     }
-
 
     this.bInitialOk = true;
     return true;
@@ -156,12 +140,12 @@ class IWanService extends AgentServiceInterface {
   }
 
   async configNftPolicyIds() {
-    console.log('\n\nretrieveValidNftPolicyIds begin:');
+    console.log('\n\n IWanService.. retrieveValidNftPolicyIds begin:');
     // this.chainId2TypeInfo
     let nftPolicyIds = undefined;
     try {
       nftPolicyIds = await this.getNftTreasuryPolicyIds();
-      console.log("nftPolicyIds info: ", nftPolicyIds);
+      console.log("IWanService....nftPolicyIds info: ", nftPolicyIds);
 
     } catch (err) {
       console.log(err);
@@ -173,13 +157,11 @@ class IWanService extends AgentServiceInterface {
     }
 
     try {
-      let filter = {
-        "checkTokenType": 2
+      let nftPolicyIdsRecord = {
+        "checkTokenType": 2,
+        "policyIds": nftPolicyIds
       };
-      let option = {
-        $set: {"policyIds": nftPolicyIds}
-      }
-      await this.policyIdDbInst.updateOneByOption(filter, option);
+      await this.policyIdDbInst.insert(nftPolicyIdsRecord);
 
     } catch (e) {
       this.logUtilSrv.logInfo('RecordSecurityHandler', 'insert nft policyIds failed...', e);

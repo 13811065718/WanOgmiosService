@@ -45,10 +45,6 @@ class SecurityConfirmService extends AgentServiceInterface {
     this.mintInfoDbInst = await this.storageSrvIns.getDBIns(mintInfoSchema.name);
     this.mapDbInstance.set("mintRecord", this.mintInfoDbInst);
 
-    let checkTokenPolicyIdSchema = await this.configService.getGlobalConfig("checkTokenPolicyIdSchema");
-    this.checkTokenPolicyIdDbInst = await this.storageSrvIns.getDBIns(checkTokenPolicyIdSchema.name);
-    this.mapDbInstance.set("checkTokenPolicyIdConfig", this.checkTokenPolicyIdDbInst);
-
     let ret = await this.initCheckTokenCfg();
     if (false === ret) {
       return false;
@@ -69,57 +65,35 @@ class SecurityConfirmService extends AgentServiceInterface {
     return true;
   }
 
-  // async initCheckTokenCfg() {
-  //   this.checkTokenRegexOption = new Array();
-
-  //   let checkTokenPolicyIdCfg = await this.configService.getGlobalConfig("checkTokenPolicyIdCfg");
-  //   if (undefined === checkTokenPolicyIdCfg) {
-  //     return false;
-  //   }
-
-  //   for (let i = 0; i < checkTokenPolicyIdCfg.length; i++) {
-  //     let tmpRegex = eval("/^" + checkTokenPolicyIdCfg[i] + './');
-  //     let tokenRegexItem = {
-  //       "tokenId": { $regex: tmpRegex }
-  //     }
-  //     this.checkTokenRegexOption.push(tokenRegexItem);
-  //   }
-    
-  //   return true;
-  // }
-
   async initCheckTokenCfg() {
     this.checkTokenRegexOption = new Array();
 
-    // retrieve checkTokenId from policyId db table
-    try {
-
-      for (let typeId = 1; typeId <= 2; typeId++) {
-        let filter = {
-          "checkTokenType": typeId // 1: Non-NFT; 2: NFT
-        };
-        let checkTokenPolicyIdConfig = await this.checkTokenPolicyIdDbInst.findByOption(filter);
-        if (undefined === checkTokenPolicyIdConfig) {
-          return false;
-        }
-        
-        if(undefined === checkTokenPolicyIdConfig[0]){
-          continue;
-        }
-
-        let checkTokenPolicyIds = checkTokenPolicyIdConfig[0].policyIds;
-        for (let i = 0; i < checkTokenPolicyIds.length; i++) {
-          let tmpRegex = eval("/^" + checkTokenPolicyIds[i] + './');
-          let tokenRegexItem = {
-            "tokenId": { $regex: tmpRegex }
-          }
-          this.checkTokenRegexOption.push(tokenRegexItem);
-        }
-      }
-
-    } catch (e) {
-      console.log("updateCheckTokenCfg fail, try later");
+    // to init treasury check token policyId
+    let checkTokenPolicyIdCfg = await this.configService.getGlobalConfig("checkTokenPolicyIdCfg");
+    if (undefined === checkTokenPolicyIdCfg) {
       return false;
+    }
+
+    for (let i = 0; i < checkTokenPolicyIdCfg.length; i++) {
+      let tmpRegex = eval("/^" + checkTokenPolicyIdCfg[i] + './');
+      let tokenRegexItem = {
+        "tokenId": { $regex: tmpRegex }
+      }
+      this.checkTokenRegexOption.push(tokenRegexItem);
+    }
+
+    // to init nft-treasury check token policyId
+    let nftCheckTokenPolicyIdCfg = await this.configService.getGlobalConfig("nftCheckTokenPolicyIdCfg");
+    if (undefined === nftCheckTokenPolicyIdCfg) {
+      return false;
+    }
+
+    for (let j = 0; j < nftCheckTokenPolicyIdCfg.length; j++) {
+      let tmpRegex = eval("/^" + nftCheckTokenPolicyIdCfg[j] + './');
+      let tokenRegexItem = {
+        "tokenId": { $regex: tmpRegex }
+      }
+      this.checkTokenRegexOption.push(tokenRegexItem);
     }
 
     return true;

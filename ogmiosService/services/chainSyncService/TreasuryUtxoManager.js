@@ -9,21 +9,13 @@ const UtxoStatus_Consumed = 0;
 
 class TreasuryUtxoManager {
 
-  constructor(treasuryAddress, mapDbNameInst, ogmiosServerConfig, checkTokenPolicyIdCfg = undefined) {
+  constructor(treasuryAddress, mapDbNameInst, ogmiosServerConfig, checkTokenPolicyIdCfg) {
 
     this.treasuryScAddress = treasuryAddress;
     this.checkTokenPolicyIds = checkTokenPolicyIdCfg;
     this.ogmiosServerConfig = ogmiosServerConfig;
     this.treasuryUtxoDbInst = mapDbNameInst.get("treasuryUtxoInfo");
-    this.policyIdConfigDbInst = mapDbNameInst.get("checkTokenPolicyIdConfig");
     this.mapAvailalbeUtxos = new Map();
-
-    this.bNftEnable = false;
-    if (undefined === this.checkTokenPolicyIds) {
-      this.checkTokenPolicyIds = new Array();
-      this.bNftEnable = true;
-    }
-
   }
 
   //scan block backward nomally
@@ -159,31 +151,7 @@ class TreasuryUtxoManager {
 
   async getCheckTokenPolicyIds() {
 
-    console.log("getCheckTokenPolicyIds bNftEnable: ", this.bNftEnable);
-    if (!this.bNftEnable) {
-      return this.checkTokenPolicyIds;
-    }
-
-    try {
-      let filter = {
-        "checkTokenType": 2  // 1: non-NFT; 2: NFT
-      };
-      let ret = await this.policyIdConfigDbInst.findAllByOption(filter);
-      if (undefined === ret) {
-        return this.checkTokenPolicyIds;
-      }
-
-      if ((undefined !== ret[0]) && (ret[0].policyIds.length > 0)) {
-        this.checkTokenPolicyIds = ret[0].policyIds;
-      }
-      console.log("getCheckTokenPolicyIds checkTokenPolicyIds: ", this.checkTokenPolicyIds);
-
-    } catch (e) {
-      console.log("update CheckTokenPolicyIds failed: ", e);
-    }
-
     return this.checkTokenPolicyIds;
-
   }
 
 }

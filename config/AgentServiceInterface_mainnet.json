@@ -1,6 +1,6 @@
 {
-  "serviceType": "AgentServiceInterface",
-  "serviceName": "AgentService",
+  "serviceType": "AgentServiceInterface_mainnet",
+  "serviceName": "AgentService_mainnet",
   "config": {
     "SecurityConfirmCfg":{
       "securityConfirmServiceID": 100110,
@@ -11,11 +11,11 @@
       "maxValidBlockMargin": 10,
       "externalSource": "blockFrost",
       "blockFrostConfig": {
-        "ApiKey": "preprod2CkSg6ILU3vxDMRn2EOO6hwXtUAOceDF"
+        "ApiKey": "mainnetwyQcQkHH6HTr7eylR6hWwA2Rt5R9AVEY"
       },
       "maestroConfig":{
-        "ApiKey": "6wphWH2hxIBUoZkCs3pxRuhqPsdJriBX",
-        "url": "https://preprod.gomaestro-api.org/v1"
+        "ApiKey": "v0LXAjiRQAm3PNjlFSlqB8rfgUp7OExE",
+        "url": "https://ogmios.wanchain.gomaestro-api.org/"
       }
     }
   }

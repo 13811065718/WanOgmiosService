@@ -54,6 +54,7 @@ class Start {
             await iWanService.init();
             iWanService.startUp();
             serviceFramework.registerService("AgentServiceInterface","IWanService", iWanService);
+            console.log("Start.start()****************************4");
 
             // ChainSyncService
             let ogmiosVersion = await configServiceJson.getGlobalConfig("cardanoOgmiosVersion");
@@ -62,20 +63,20 @@ class Start {
             await chainSyncService.init();
             await chainSyncService.startUp();
             serviceFramework.registerService("EndPointServiceInterface", "ChainSyncService", chainSyncService);
-            console.log("Start.start()****************************4");
+            console.log("Start.start()****************************5");
 
             // SecurityConfirmService
             let securityConfirmService = new SecurityConfirmService();
             await securityConfirmService.init();
             securityConfirmService.startUp();
             serviceFramework.registerService("AgentServiceInterface", "SecurityConfirmService", securityConfirmService);
-            console.log("Start.start()****************************5");
+            console.log("Start.start()****************************6");
 
             // OgmiosRouterService
             let ogmiosRouterService = new OgmiosRouterService();
             await ogmiosRouterService.init();
             serviceFramework.registerService("EndPointServiceInterface", "OgmiosRouterService", ogmiosRouterService);
-            console.log("Start.start()****************************6");
+            console.log("Start.start()****************************7");
 
             // ApiService Service
             let apiService = new ApiService();

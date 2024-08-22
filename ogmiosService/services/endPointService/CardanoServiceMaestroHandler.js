@@ -28,6 +28,13 @@ class CardanoServiceMaestroHandler {
 
     constructor() {
         console.log("\n\n\n... instance CardanoServiceMaestroHandler...");
+
+        this.ogmiosAccessStatic = {
+            "totalNum": 0,
+            "successNum": 0,
+            "failedNum": 0,
+            "curTs": Date.now()/1000
+        };
     }
 
     async init() {
@@ -53,8 +60,8 @@ class CardanoServiceMaestroHandler {
         let balancedCfgInfoSchema = await this.configService.getGlobalConfig("balancedCfgInfoSchema");
         this.balancedCfgInfoDbInst = await this.storageSrvIns.getDBIns(balancedCfgInfoSchema.name);
 
-        let checkTokenPolicyIdSchema = await this.configService.getGlobalConfig("checkTokenPolicyIdSchema");
-        this.policyIdDbInst = await this.storageSrvIns.getDBIns(checkTokenPolicyIdSchema.name);
+        let mappingTokenPolicyIdSchema = await this.configService.getGlobalConfig("mappingTokenPolicyIdSchema");
+        this.policyIdDbInst = await this.storageSrvIns.getDBIns(mappingTokenPolicyIdSchema.name);
 
         this.treasuryScCfg = await this.configService.getGlobalConfig("treasuryScCfg");
 
@@ -109,6 +116,8 @@ class CardanoServiceMaestroHandler {
         this.queryClient = await createLedgerStateQueryClient(this.context);
         (await this.queryClient.networkTip()).slot;
 
+        this.addSuccessOgmiosAccess();
+
         // tx submit client
         this.txSubmitClient = await createTransactionSubmissionClient(this.context);
 
@@ -123,6 +132,26 @@ class CardanoServiceMaestroHandler {
         // console.log('WS close: code =', code, 'reason =', reason);
         // await client.shutdown();
         await this.reconnectOgmiosNode();
+    }
+
+    addSuccessOgmiosAccess() {
+        this.ogmiosAccessStatic.successNum++;
+        this.ogmiosAccessStatic.totalNum++;
+        let curTs = Date.now() / 1000;
+        if ((curTs - this.ogmiosAccessStatic.curTs) >= 600) {
+            this.ogmiosAccessStatic.curTs = curTs;
+            this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...ogmiosAccessStatic:", this.ogmiosAccessStatic);
+        }
+    }
+
+    addFailedOgmiosAccess() {
+        this.ogmiosAccessStatic.failedNum++;
+        this.ogmiosAccessStatic.totalNum++;
+        let curTs = Date.now() / 1000;
+        if ((curTs - this.ogmiosAccessStatic.curTs) >= 600) {
+            this.ogmiosAccessStatic.curTs = curTs;
+            this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...ogmiosAccessStatic:", this.ogmiosAccessStatic);
+        }
     }
 
     async handleGetUTXOsByPlutusSdk(reqOptions) {
@@ -148,6 +177,8 @@ class CardanoServiceMaestroHandler {
 
             let utxoObjs = await this.queryClient.utxo(utxoFilter);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUTXOsByPlutusSdk...length:", utxoObjs.length);
+
+            this.addSuccessOgmiosAccess();
 
             let formatedUtxoArray = new Array();
             for (let i = 0; i < utxoObjs.length; i++) {
@@ -175,6 +206,8 @@ class CardanoServiceMaestroHandler {
         } catch (e) {
             console.log("query utxo exception: ", e);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUTXOsByPlutusSdk...error: ", e);
+            
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -202,6 +235,7 @@ class CardanoServiceMaestroHandler {
 
             let utxoObjs = await this.queryClient.utxo(utxoFilter);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUtxos...length:", utxoObjs.length);
+            this.addSuccessOgmiosAccess();
 
             let formatedUtxoArray = new Array();
             for (let i = 0; i < utxoObjs.length; i++) {
@@ -229,6 +263,7 @@ class CardanoServiceMaestroHandler {
         } catch (e) {
             console.log("query utxo exception: ", e);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUtxos...error: ", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -532,6 +567,8 @@ class CardanoServiceMaestroHandler {
             // to query utxo on-chain 
             let rets = await this.queryClient.utxo(utxoFilter);
             console.log("\n\n .....queryClient rets: ", rets);
+            this.addSuccessOgmiosAccess();
+
             for (let ipId = 0; ipId < rets.length; i++) {
                 let retUtxoObj = rets[ipId];
 
@@ -541,6 +578,8 @@ class CardanoServiceMaestroHandler {
                     "addresses": addressAry
                 }
                 let utxoObjs = await this.queryClient.utxo(filter);
+                this.addSuccessOgmiosAccess();
+                
                 for (let i = 0; i < utxoObjs.length; i++) {
                     let utxoItem = utxoObjs[i];
 
@@ -559,6 +598,8 @@ class CardanoServiceMaestroHandler {
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...checkUtxoAvailable error...", e);
+
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -889,6 +930,7 @@ class CardanoServiceMaestroHandler {
                 "addresses": addressAry
             }
             let utxoObjs = await this.queryClient.utxo(filter);
+            this.addSuccessOgmiosAccess();
             // console.log("\n\n .....utxoObjs: ", utxoObjs);
 
             let formatedUtxoArray = new Array();
@@ -947,6 +989,7 @@ class CardanoServiceMaestroHandler {
             }
             let utxoObjs = await this.queryClient.utxo(filter);
             console.log("\n\n .....utxoObjs: ", utxoObjs);
+            this.addSuccessOgmiosAccess();
 
             let formatedUtxoArray = new Array();
             for (let i = 0; i < utxoObjs.length; i++) {
@@ -976,6 +1019,7 @@ class CardanoServiceMaestroHandler {
             console.log("query utxo exception: ", e);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...query utxo error...", e);
 
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -991,10 +1035,13 @@ class CardanoServiceMaestroHandler {
             genesisConfig.maxLovelaceSupply = undefined;
 
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...queryGenesisConfig...", genesisConfig);
+            this.addSuccessOgmiosAccess();
             return genesisConfig;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...queryGenesisConfig error...", e);
+
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1008,11 +1055,13 @@ class CardanoServiceMaestroHandler {
             let maestroEraSummaries = await this.queryClient.eraSummaries();
             let eraSummaries = convertMaestroEraSummariesInfo(maestroEraSummaries);
 
+            this.addSuccessOgmiosAccess();
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...queryEraSummaries...", eraSummaries);
             return eraSummaries;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...queryEraSummaries error...", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1033,6 +1082,7 @@ class CardanoServiceMaestroHandler {
             console.log("\n\n .....getBalanceByAddress filter: ", filter);
             let utxoObjs = await this.queryClient.utxo(filter);
             console.log("\n\n .....utxoObjs: ", utxoObjs);
+            this.addSuccessOgmiosAccess();
 
             let assetBalanceArray = new Array();
             for (let i = 0; i < utxoObjs.length; i++) {
@@ -1136,6 +1186,7 @@ class CardanoServiceMaestroHandler {
 
         } catch (e) {
             console.log("query utxo exception: ", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1150,11 +1201,13 @@ class CardanoServiceMaestroHandler {
             chainTip.hash = chainTip.id;
             console.log("\n\n .....getChainTip chainTip: ", chainTip);
 
+            this.addSuccessOgmiosAccess();
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getChainTip...", chainTip);
             return chainTip;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getChainTip error...", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1169,12 +1222,14 @@ class CardanoServiceMaestroHandler {
             let curProtocalParams = convertMaestroProtocolParams(maestroProtocolParams);
             console.log("\n\ncurProtocalParams: ", curProtocalParams);
 
+            this.addSuccessOgmiosAccess();
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getCostModelParameters...", curProtocalParams);
             return curProtocalParams;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getCostModelParameters error...", e);
             console.log("getCostModelParameters error: ", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1187,12 +1242,14 @@ class CardanoServiceMaestroHandler {
             let maestroProtocolParams = await this.queryClient.protocolParameters();
             let protocolParams = convertMaestroProtocolParams(maestroProtocolParams);
             console.log('protocolParams:', protocolParams);
+            this.addSuccessOgmiosAccess();
 
             // this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...currentProtocolParameters...", protocolParams);
             let maestroGenesisConfig = await this.queryClient.genesisConfiguration('shelley');
             let genesisConfig = convertMaestroGenesisConfig(maestroGenesisConfig);
             console.log('genesisConfig:', genesisConfig.protocolParameters);
             console.log('protocolParams:', protocolParams);
+            this.addSuccessOgmiosAccess();
 
             let epochsParams = {
                 "min_fee_a": JSON.stringify(protocolParams.minFeeCoefficient),
@@ -1213,6 +1270,7 @@ class CardanoServiceMaestroHandler {
 
         } catch (e) {
             console.log("query getCurProtocolParameters exception: ", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1224,12 +1282,13 @@ class CardanoServiceMaestroHandler {
         try {
 
             let ret = await this.txSubmitClient.submitTransaction(reqOptions.rawTx);
+            this.addSuccessOgmiosAccess();
+
             if(undefined !== ret.transaction){
                 console.log("submitTx ret: ", ret);
                 this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...submitTx...", ret);
                 return ret.transaction.id;
-            } 
-
+            }
 
             console.log("submitTx ret: ", ret);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...submitTx...", ret);
@@ -1238,6 +1297,8 @@ class CardanoServiceMaestroHandler {
         } catch (error) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...submitTx...failed:", error);
             console.log("submitTx failed: ", error);
+
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1250,6 +1311,7 @@ class CardanoServiceMaestroHandler {
             let maestroRet = await this.txSubmitClient.evaluateTransaction(reqOptions.rawTx);
             let ret = convertMaestroEvaluateRet(maestroRet);
 
+            this.addSuccessOgmiosAccess();
             console.log("evaluateTx ret: ", ret);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...evaluateTx...", ret);
             return ret;
@@ -1257,6 +1319,7 @@ class CardanoServiceMaestroHandler {
         } catch (error) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...evaluateTx...failed:", error);
             console.log("evaluateTx failed: ", error);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1601,6 +1664,7 @@ class CardanoServiceMaestroHandler {
 
             let ret = await this.queryClient.utxo(filter);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUTXOsByPlutusSdk...length:", ret.length);
+            this.addSuccessOgmiosAccess();
 
             let utxoObjs = new Array();
             for (let i = 0; i < ret.length; i++) {
@@ -1658,6 +1722,7 @@ class CardanoServiceMaestroHandler {
         } catch (e) {
             console.log("query utxo exception: ", e);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...handleGetUTXOsByPlutusSdk...error: ", e);
+            this.addFailedOgmiosAccess();
             return undefined;
         }
     }
@@ -1669,6 +1734,8 @@ class CardanoServiceMaestroHandler {
         try {
 
             let ret = await this.txSubmitClient.submitTransaction(reqOptions);
+            this.addSuccessOgmiosAccess();
+
             if(undefined !== ret.transaction){
                 console.log("submitTxByPlutusSdk ret: ", ret);
                 this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...submitTxByPlutusSdk...", ret);
@@ -1682,6 +1749,8 @@ class CardanoServiceMaestroHandler {
         } catch (error) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...submitTxByPlutusSdk...failed:", error);
             console.log("submitTxByPlutusSdk failed: ", error);
+            this.addFailedOgmiosAccess();
+
             return error;
         }
     }
@@ -1692,6 +1761,8 @@ class CardanoServiceMaestroHandler {
 
         try {
             let maestroRet = await this.txSubmitClient.evaluateTransaction(reqOptions);
+            this.addSuccessOgmiosAccess();
+
             let ret = convertMaestroEvaluateRet4PlutusSdk(maestroRet);
             console.log("evaluateTxByPlutusSdk ret: ", ret);
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...evaluateTxByPlutusSdk...", ret);
@@ -1700,6 +1771,8 @@ class CardanoServiceMaestroHandler {
         } catch (error) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...evaluateTxByPlutusSdk...failed:", error);
             console.log("evaluateTxByPlutusSdk failed: ", error);
+            this.addFailedOgmiosAccess();
+
             return undefined;
         }
     }
@@ -1713,12 +1786,14 @@ class CardanoServiceMaestroHandler {
             let chainTip = await this.queryClient.networkTip();
             chainTip.hash = chainTip.id;
             console.log("\n\n .....getChainTipByPlutusSdk chainTip: ", chainTip);
+            this.addSuccessOgmiosAccess();
 
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getChainTipByPlutusSdk...", chainTip);
             return chainTip;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getChainTipByPlutusSdk error...", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
@@ -1732,6 +1807,7 @@ class CardanoServiceMaestroHandler {
             let maestroProtocolParams = await this.queryClient.protocolParameters();
             let curProtocalParams = convertMaestroProtocolParams(maestroProtocolParams);
             console.log("\n\ncurProtocalParams: ", curProtocalParams);
+            this.addSuccessOgmiosAccess();
 
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getCurProtocolParametersByPlutusSdk...", curProtocalParams);
             return curProtocalParams;
@@ -1739,6 +1815,7 @@ class CardanoServiceMaestroHandler {
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getCurProtocolParametersByPlutusSdk error...", e);
             console.log("getCurProtocolParametersByPlutusSdk error: ", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
@@ -1750,10 +1827,12 @@ class CardanoServiceMaestroHandler {
         try {
             let maestroGenesisConfig = await this.queryClient.genesisConfiguration('shelley');
             let genesisConfig = convertMaestroGenesisConfig(maestroGenesisConfig);
+            this.addSuccessOgmiosAccess();
             return genesisConfig;
 
         } catch (e) {
             console.log("query getGenesisConfigByPlutusSdk exception: ", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
@@ -1767,11 +1846,13 @@ class CardanoServiceMaestroHandler {
             let maestroEraSummaries = await this.queryClient.eraSummaries();
             let eraSummaries = convertMaestroEraSummariesInfo(maestroEraSummaries);
 
+            this.addSuccessOgmiosAccess();
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getEraSummariesByPlutusSdk...", eraSummaries);
             return eraSummaries;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getEraSummariesByPlutusSdk error...", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
@@ -1783,12 +1864,14 @@ class CardanoServiceMaestroHandler {
         // get query eraSummaries 
         try {
             let blockHeight = await this.queryClient.networkBlockHeight();
+            this.addSuccessOgmiosAccess();
 
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getBlockHeightByPlutusSdk...", blockHeight);
             return blockHeight;
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getBlockHeightByPlutusSdk error...", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
@@ -1808,6 +1891,8 @@ class CardanoServiceMaestroHandler {
 
             let retSummaries = await this.queryClient.rewardAccountSummaries(params);
             console.log("\n\n .....rewardAccountSummaries...ret: ", retSummaries);
+            this.addSuccessOgmiosAccess();
+
             let ret = {};
             for(let key in retSummaries){
                 let summObj = retSummaries[key];
@@ -1828,6 +1913,7 @@ class CardanoServiceMaestroHandler {
 
         } catch (e) {
             this.logUtilSrv.logInfo("CardanoServiceMaestroHandler", "...getDelegationsAndRewardsByPlutusSdk error...", e);
+            this.addFailedOgmiosAccess();
             return e;
         }
     }
